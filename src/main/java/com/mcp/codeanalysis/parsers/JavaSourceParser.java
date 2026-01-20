@@ -11,6 +11,7 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.mcp.codeanalysis.types.JavaFileInfo;
+import com.mcp.codeanalysis.utils.ComplexityAnalyzer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,12 +28,14 @@ import java.util.Optional;
 public class JavaSourceParser {
     private static final Logger logger = LoggerFactory.getLogger(JavaSourceParser.class);
     private final JavaParser javaParser;
+    private final ComplexityAnalyzer complexityAnalyzer;
 
     public JavaSourceParser() {
         // Configure JavaParser for Java 17 to support records and other modern features
         ParserConfiguration config = new ParserConfiguration();
         config.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17);
         this.javaParser = new JavaParser(config);
+        this.complexityAnalyzer = new ComplexityAnalyzer();
     }
 
     /**
@@ -344,6 +347,10 @@ public class JavaSourceParser {
             methodInfo.setStartLine(range.begin.line);
             methodInfo.setEndLine(range.end.line);
         });
+
+        // Calculate cyclomatic complexity
+        int complexity = complexityAnalyzer.calculateComplexity(method);
+        methodInfo.setComplexity(complexity);
 
         return methodInfo;
     }
