@@ -403,7 +403,10 @@ public class JavaSourceParser {
 
     private void extractAnnotations(NodeList<AnnotationExpr> annotations, JavaFileInfo.MethodInfo methodInfo) {
         for (AnnotationExpr annotation : annotations) {
-            methodInfo.addAnnotation(annotation.getNameAsString());
+            String name = annotation.getNameAsString();
+            methodInfo.addAnnotation(name);
+            // Store full annotation string with parameters (e.g., "@Before(\"execution(* com.example.*.*(..))\")")
+            methodInfo.addAnnotationDetail(name, annotation.toString());
         }
     }
 
