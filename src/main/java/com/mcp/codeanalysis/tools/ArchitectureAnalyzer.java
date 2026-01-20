@@ -7,6 +7,7 @@ import com.mcp.codeanalysis.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -17,32 +18,6 @@ import java.util.*;
  */
 public class ArchitectureAnalyzer {
     private static final Logger logger = LoggerFactory.getLogger(ArchitectureAnalyzer.class);
-
-    private final FileScanner fileScanner;
-    private final JavaSourceParser javaParser;
-    private final ComplexityAnalyzer complexityAnalyzer;
-    private final FrameworkDetector frameworkDetector;
-    private final DiagramGenerator diagramGenerator;
-
-    // Framework analyzers
-    private final SpringFrameworkAnalyzer springAnalyzer;
-    private final SpringBootAnalyzer springBootAnalyzer;
-    private final JpaAnalyzer jpaAnalyzer;
-    private final SecurityAnalyzer securityAnalyzer;
-    private final AopAnalyzer aopAnalyzer;
-
-    public ArchitectureAnalyzer() {
-        this.fileScanner = new FileScanner();
-        this.javaParser = new JavaSourceParser();
-        this.complexityAnalyzer = new ComplexityAnalyzer();
-        this.frameworkDetector = new FrameworkDetector();
-        this.diagramGenerator = new DiagramGenerator();
-        this.springAnalyzer = new SpringFrameworkAnalyzer();
-        this.springBootAnalyzer = new SpringBootAnalyzer();
-        this.jpaAnalyzer = new JpaAnalyzer();
-        this.securityAnalyzer = new SecurityAnalyzer();
-        this.aopAnalyzer = new AopAnalyzer();
-    }
 
     /**
      * Analyze project architecture.
@@ -55,74 +30,103 @@ public class ArchitectureAnalyzer {
         Path projectRoot = Paths.get(projectPath);
         AnalysisResult result = new AnalysisResult();
 
-        // Scan for files
-        FileScanner.ScanResult scan = fileScanner.scanDirectory(
-                projectRoot,
-                options.includeGlobs,
-                options.excludeGlobs);
+        try {
+            // Initialize scanner and parsers
+            FileScanner fileScanner = new FileScanner(projectRoot);
+            JavaSourceParser javaParser = new JavaSourceParser();
 
-        result.setTotalFiles(scan.getTotalJavaFiles());
+            // Scan for files
+            List<Path> javaFiles = fileScanner.scanJavaFiles();
+            List<Path> xmlFiles = fileScanner.scanXmlFiles();
+            List<Path> configFiles = new ArrayList<>();
+            configFiles.addAll(fileScanner.scanYamlFiles());
+            configFiles.addAll(fileScanner.scanPropertiesFiles());
 
-        // Detect frameworks
-        FrameworkDetector.DetectionResult frameworks = frameworkDetector.detectFrameworks(scan);
-        result.setFrameworks(frameworks.getDetectedFrameworks());
-
-        // Analyze Java files
-        List<JavaFileInfo> javaFiles = new ArrayList<>();
-        for (Path javaFile : scan.getJavaFiles()) {
-            JavaFileInfo fileInfo = javaParser.parseFile(javaFile);
-            if (fileInfo != null) {
-                // Calculate complexity
-                for (JavaFileInfo.ClassInfo classInfo : fileInfo.getClasses()) {
-                    for (JavaFileInfo.MethodInfo method : classInfo.getMethods()) {
-                        int complexity = complexityAnalyzer.calculateComplexity(method);
-                        method.setComplexity(complexity);
-                    }
-                }
-                javaFiles.add(fileInfo);
+            Path pomFile = null;
+            List<Path> pomFiles = fileScanner.findPomFiles();
+            if (!pomFiles.isEmpty()) {
+                pomFile = pomFiles.get(0);
             }
-        }
 
-        // Calculate metrics
-        result.setMetrics(calculateMetrics(javaFiles));
+            result.setTotalFiles(javaFiles.size());
 
-        // Analyze Spring Boot if detected
-        if (frameworks.isSpringBootDetected()) {
-            SpringBootAnalyzer.SpringBootAnalysisResult bootResult =
-                    springBootAnalyzer.analyze(scan.getJavaFiles(), scan.getPomXmlFile(), scan.getConfigFiles());
-            result.setSpringBootResult(bootResult);
-        }
+            // Detect frameworks
+            FrameworkDetector frameworkDetector = new FrameworkDetector(projectRoot);
+            FrameworkDetector.FrameworkInfo frameworkInfo = frameworkDetector.detect();
+            result.setFrameworkInfo(frameworkInfo);
 
-        // Analyze traditional Spring if detected
-        if (frameworks.isSpringFrameworkDetected()) {
-            SpringFrameworkAnalyzer.SpringAnalysisResult springResult =
-                    springAnalyzer.analyze(scan.getXmlFiles());
-            result.setSpringResult(springResult);
-        }
+            // Analyze Java files (complexity is calculated during parsing)
+            List<JavaFileInfo> parsedJavaFiles = new ArrayList<>();
+            for (Path javaFile : javaFiles) {
+                JavaFileInfo fileInfo = javaParser.parseFile(javaFile);
+                if (fileInfo != null) {
+                    parsedJavaFiles.add(fileInfo);
+                }
+            }
 
-        // Analyze JPA
-        JpaAnalyzer.JpaAnalysisResult jpaResult = jpaAnalyzer.analyze(scan.getJavaFiles());
-        if (jpaResult.getEntityCount() > 0) {
-            result.setJpaResult(jpaResult);
-        }
+            // Calculate metrics
+            result.setMetrics(calculateMetrics(parsedJavaFiles));
 
-        // Analyze Security
-        SecurityAnalyzer.SecurityAnalysisResult securityResult =
-                securityAnalyzer.analyze(scan.getJavaFiles(), scan.getXmlFiles());
-        if (securityResult.isSecurityEnabled()) {
-            result.setSecurityResult(securityResult);
-        }
+            // Framework analyzers
+            SpringBootAnalyzer springBootAnalyzer = new SpringBootAnalyzer();
+            SpringFrameworkAnalyzer springAnalyzer = new SpringFrameworkAnalyzer();
+            JpaAnalyzer jpaAnalyzer = new JpaAnalyzer();
+            SecurityAnalyzer securityAnalyzer = new SecurityAnalyzer();
+            AopAnalyzer aopAnalyzer = new AopAnalyzer();
 
-        // Analyze AOP
-        AopAnalyzer.AopAnalysisResult aopResult =
-                aopAnalyzer.analyze(scan.getJavaFiles(), scan.getXmlFiles());
-        if (aopResult.isAopEnabled()) {
-            result.setAopResult(aopResult);
-        }
+            // Analyze Spring Boot if detected
+            if (frameworkInfo.isSpringBoot()) {
+                SpringBootAnalyzer.SpringBootAnalysisResult bootResult =
+                        springBootAnalyzer.analyze(javaFiles, pomFile, configFiles);
+                result.setSpringBootResult(bootResult);
+            }
 
-        // Generate diagrams if requested
-        if (options.generateDiagrams) {
-            result.setArchitectureDiagram(diagramGenerator.generateArchitectureDiagram(javaFiles));
+            // Analyze traditional Spring if detected
+            if (frameworkInfo.isTraditionalSpring()) {
+                SpringFrameworkAnalyzer.SpringAnalysisResult springResult =
+                        springAnalyzer.analyze(xmlFiles);
+                result.setSpringResult(springResult);
+            }
+
+            // Analyze JPA
+            JpaAnalyzer.JpaAnalysisResult jpaResult = jpaAnalyzer.analyze(javaFiles);
+            if (jpaResult.getEntityCount() > 0) {
+                result.setJpaResult(jpaResult);
+            }
+
+            // Analyze Security
+            SecurityAnalyzer.SecurityAnalysisResult securityResult =
+                    securityAnalyzer.analyze(javaFiles, xmlFiles);
+            if (securityResult.isSecurityEnabled()) {
+                result.setSecurityResult(securityResult);
+            }
+
+            // Analyze AOP
+            AopAnalyzer.AopAnalysisResult aopResult =
+                    aopAnalyzer.analyze(javaFiles, xmlFiles);
+            if (aopResult.isAopEnabled()) {
+                result.setAopResult(aopResult);
+            }
+
+            // Generate diagrams if requested
+            if (options.generateDiagrams) {
+                DiagramGenerator diagramGenerator = new DiagramGenerator();
+
+                // Generate architecture diagram from package layers
+                Map<String, List<String>> packageLayers = extractPackageLayers(parsedJavaFiles);
+                if (!packageLayers.isEmpty()) {
+                    result.setArchitectureDiagram(diagramGenerator.generateArchitectureDiagram(packageLayers));
+                }
+
+                // Generate complexity heatmap
+                Map<String, Integer> complexities = extractComplexities(parsedJavaFiles);
+                if (!complexities.isEmpty()) {
+                    result.setComplexityHeatmap(diagramGenerator.generateComplexityHeatmap(complexities));
+                }
+            }
+
+        } catch (IOException e) {
+            logger.error("Error analyzing project: {}", projectPath, e);
         }
 
         return result;
@@ -166,6 +170,72 @@ public class ArchitectureAnalyzer {
         return metrics;
     }
 
+    /**
+     * Extract package layers from Java files.
+     */
+    private Map<String, List<String>> extractPackageLayers(List<JavaFileInfo> javaFiles) {
+        Map<String, List<String>> layers = new HashMap<>();
+
+        for (JavaFileInfo file : javaFiles) {
+            String packageName = file.getPackageName();
+            if (packageName == null || packageName.isEmpty()) {
+                continue;
+            }
+
+            // Determine layer from package name
+            String layer = determineLayer(packageName);
+            layers.computeIfAbsent(layer, k -> new ArrayList<>());
+            if (!layers.get(layer).contains(packageName)) {
+                layers.get(layer).add(packageName);
+            }
+        }
+
+        return layers;
+    }
+
+    /**
+     * Determine architectural layer from package name.
+     */
+    private String determineLayer(String packageName) {
+        String lowerPackage = packageName.toLowerCase();
+
+        if (lowerPackage.contains("controller") || lowerPackage.contains("rest") || lowerPackage.contains("api")) {
+            return "controller";
+        } else if (lowerPackage.contains("service") || lowerPackage.contains("business")) {
+            return "service";
+        } else if (lowerPackage.contains("repository") || lowerPackage.contains("dao") || lowerPackage.contains("data")) {
+            return "repository";
+        } else if (lowerPackage.contains("entity") || lowerPackage.contains("model") || lowerPackage.contains("domain")) {
+            return "model";
+        } else if (lowerPackage.contains("config")) {
+            return "config";
+        } else if (lowerPackage.contains("util")) {
+            return "util";
+        } else {
+            return "other";
+        }
+    }
+
+    /**
+     * Extract method complexities for heatmap.
+     */
+    private Map<String, Integer> extractComplexities(List<JavaFileInfo> javaFiles) {
+        Map<String, Integer> complexities = new HashMap<>();
+
+        for (JavaFileInfo file : javaFiles) {
+            for (JavaFileInfo.ClassInfo classInfo : file.getClasses()) {
+                for (JavaFileInfo.MethodInfo method : classInfo.getMethods()) {
+                    if (method.getComplexity() > 5) { // Only include methods with complexity > 5
+                        String key = classInfo.getName() + "." + method.getName();
+                        complexities.put(key, method.getComplexity());
+                    }
+                }
+            }
+        }
+
+        return complexities;
+    }
+
     // DTOs
 
     public static class AnalysisOptions {
@@ -179,9 +249,10 @@ public class ArchitectureAnalyzer {
 
     public static class AnalysisResult {
         private int totalFiles;
-        private Set<String> frameworks = new HashSet<>();
+        private FrameworkDetector.FrameworkInfo frameworkInfo;
         private ProjectMetrics metrics;
         private String architectureDiagram;
+        private String complexityHeatmap;
 
         // Framework-specific results
         private SpringBootAnalyzer.SpringBootAnalysisResult springBootResult;
@@ -194,14 +265,17 @@ public class ArchitectureAnalyzer {
         public int getTotalFiles() { return totalFiles; }
         public void setTotalFiles(int totalFiles) { this.totalFiles = totalFiles; }
 
-        public Set<String> getFrameworks() { return new HashSet<>(frameworks); }
-        public void setFrameworks(Set<String> frameworks) { this.frameworks = frameworks; }
+        public FrameworkDetector.FrameworkInfo getFrameworkInfo() { return frameworkInfo; }
+        public void setFrameworkInfo(FrameworkDetector.FrameworkInfo info) { this.frameworkInfo = info; }
 
         public ProjectMetrics getMetrics() { return metrics; }
         public void setMetrics(ProjectMetrics metrics) { this.metrics = metrics; }
 
         public String getArchitectureDiagram() { return architectureDiagram; }
         public void setArchitectureDiagram(String diagram) { this.architectureDiagram = diagram; }
+
+        public String getComplexityHeatmap() { return complexityHeatmap; }
+        public void setComplexityHeatmap(String heatmap) { this.complexityHeatmap = heatmap; }
 
         public SpringBootAnalyzer.SpringBootAnalysisResult getSpringBootResult() { return springBootResult; }
         public void setSpringBootResult(SpringBootAnalyzer.SpringBootAnalysisResult result) { this.springBootResult = result; }
