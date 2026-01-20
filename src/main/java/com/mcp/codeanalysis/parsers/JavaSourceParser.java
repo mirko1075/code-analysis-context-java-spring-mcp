@@ -394,7 +394,10 @@ public class JavaSourceParser {
 
     private void extractAnnotations(NodeList<AnnotationExpr> annotations, JavaFileInfo.FieldInfo fieldInfo) {
         for (AnnotationExpr annotation : annotations) {
-            fieldInfo.addAnnotation(annotation.getNameAsString());
+            String name = annotation.getNameAsString();
+            fieldInfo.addAnnotation(name);
+            // Store full annotation string with parameters (e.g., "@OneToMany(mappedBy = \"author\")")
+            fieldInfo.addAnnotationDetail(name, annotation.toString());
         }
     }
 
