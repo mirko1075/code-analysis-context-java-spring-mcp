@@ -1,7 +1,9 @@
 package com.mcp.codeanalysis.types;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents information extracted from a Java source file.
@@ -219,11 +221,13 @@ public class JavaFileInfo {
         private String name;
         private String type;
         private List<String> annotations;
+        private Map<String, String> annotationDetails;  // Full annotation strings with parameters
         private List<String> modifiers;
         private int line;
 
         public FieldInfo() {
             this.annotations = new ArrayList<>();
+            this.annotationDetails = new HashMap<>();
             this.modifiers = new ArrayList<>();
         }
 
@@ -261,6 +265,18 @@ public class JavaFileInfo {
             this.annotations.add(annotation);
         }
 
+        public Map<String, String> getAnnotationDetails() {
+            return annotationDetails;
+        }
+
+        public void setAnnotationDetails(Map<String, String> annotationDetails) {
+            this.annotationDetails = annotationDetails;
+        }
+
+        public void addAnnotationDetail(String name, String fullAnnotation) {
+            this.annotationDetails.put(name, fullAnnotation);
+        }
+
         public List<String> getModifiers() {
             return modifiers;
         }
@@ -290,6 +306,7 @@ public class JavaFileInfo {
         private String returnType;
         private List<ParameterInfo> parameters;
         private List<String> annotations;
+        private Map<String, String> annotationDetails;  // Full annotation strings with parameters
         private List<String> modifiers;
         private int startLine;
         private int endLine;
@@ -298,6 +315,7 @@ public class JavaFileInfo {
         public MethodInfo() {
             this.parameters = new ArrayList<>();
             this.annotations = new ArrayList<>();
+            this.annotationDetails = new HashMap<>();
             this.modifiers = new ArrayList<>();
         }
 
@@ -345,6 +363,18 @@ public class JavaFileInfo {
 
         public void addAnnotation(String annotation) {
             this.annotations.add(annotation);
+        }
+
+        public Map<String, String> getAnnotationDetails() {
+            return annotationDetails;
+        }
+
+        public void setAnnotationDetails(Map<String, String> annotationDetails) {
+            this.annotationDetails = annotationDetails;
+        }
+
+        public void addAnnotationDetail(String name, String fullAnnotation) {
+            this.annotationDetails.put(name, fullAnnotation);
         }
 
         public List<String> getModifiers() {
