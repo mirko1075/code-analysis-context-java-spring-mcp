@@ -305,11 +305,30 @@ Adapted for Java/Spring Boot
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
-## 🙏 Acknowledgments
+## Credits & Acknowledgments
 
-Based on the Python version: [code-analysis-context-python-mcp](https://github.com/andreahaku/code-analysis-context-python-mcp)
+This Java/Spring Boot implementation is **heavily inspired by and based on** the original Python implementation:
 
-Related Projects:
+🙏 **[code_trm_python_mcp](https://github.com/andreahaku/code_trm_python_mcp)** by [@andreahaku](https://github.com/andreahaku)
+
+The core architecture analysis logic, pattern detection algorithms, dependency mapping, and MCP tool design have been adapted from the Python version to work with Java/Spring Boot ecosystems. Key differences include:
+
+- **Language**: Python → Java 17+
+- **Target Projects**: Python codebases → Java/Spring Framework/Spring Boot projects
+- **Frameworks Analyzed**: Django, Flask → Spring MVC, Spring Boot, Spring Data, Spring Security, Spring AOP
+- **Configuration**: Python modules → Spring XML configs, JavaConfig, application.yml/properties
+- **Parsers**: Python AST → JavaParser, DOM4J (XML), Jackson (YAML/JSON)
+- **Build Tools**: pip, poetry → Maven, Gradle
+- **Test Frameworks**: pytest, unittest → JUnit 5, Mockito, Spring Test
+- **ORM Analysis**: SQLAlchemy → JPA/Hibernate, Spring Data JPA
+- **Dependency Injection**: Python imports → Spring IoC, @Autowired, XML bean wiring
+
+**Special thanks** to Andrea for the original implementation and bringing code analysis capabilities to the MCP ecosystem!
+
+### Related Projects
+
+- [code_trm_python_mcp](https://github.com/andreahaku/code_trm_python_mcp) - Original Python implementation
+- [code-analysis-context-python-mcp](https://github.com/andreahaku/code-analysis-context-python-mcp) - Python version with extended features
 - [llm-memory-mcp](https://github.com/andreahaku/llm_memory_mcp) - Persistent memory for LLM tools
 - [code-analysis-context-mcp](https://github.com/andreahaku/code-analysis-context-mcp) - TypeScript/JavaScript version
 
