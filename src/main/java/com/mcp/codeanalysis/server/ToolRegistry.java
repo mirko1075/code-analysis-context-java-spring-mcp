@@ -189,6 +189,39 @@ public class ToolRegistry {
             )
         ));
 
+        // Tool 7: LSP Analyzer
+        tools.add(createToolMetadata(
+            "lsp",
+            "Language Server Protocol features: diagnostics, hover, definitions, references, completions, symbols",
+            Map.of(
+                "type", "object",
+                "properties", Map.of(
+                    "path", Map.of(
+                        "type", "string",
+                        "description", "Project root directory"
+                    ),
+                    "file", Map.of(
+                        "type", "string",
+                        "description", "Target Java file path (relative or absolute)"
+                    ),
+                    "operation", Map.of(
+                        "type", "string",
+                        "description", "LSP operation to perform",
+                        "enum", List.of("diagnostics", "hover", "definition", "references", "completions", "symbols", "all-diagnostics")
+                    ),
+                    "line", Map.of(
+                        "type", "integer",
+                        "description", "Line number (required for hover, definition, references, completions)"
+                    ),
+                    "column", Map.of(
+                        "type", "integer",
+                        "description", "Column number (required for hover, definition, references, completions)"
+                    )
+                ),
+                "required", List.of("path", "file")
+            )
+        ));
+
         return tools;
     }
 
@@ -206,6 +239,7 @@ public class ToolRegistry {
             case "coverage" -> callCoverageAnalyzer(arguments);
             case "conventions" -> callConventionValidator(arguments);
             case "context" -> callContextPackGenerator(arguments);
+            case "lsp" -> callLspAnalyzer(arguments);
             default -> throw new IllegalArgumentException("Unknown tool: " + toolName);
         };
     }
@@ -268,6 +302,43 @@ public class ToolRegistry {
                "  \"message\": \"Context Pack Generator tool is not yet implemented\",\n" +
                "  \"arguments\": " + arguments + "\n" +
                "}";
+    }
+
+    private String callLspAnalyzer(Map<String, Object> arguments) {
+        try {
+            // Import LspAnalyzer class
+            com.mcp.codeanalysis.tools.LspAnalyzer analyzer = new com.mcp.codeanalysis.tools.LspAnalyzer();
+
+            // Parse arguments
+            String path = (String) arguments.get("path");
+            String file = (String) arguments.get("file");
+            String operation = (String) arguments.getOrDefault("operation", "diagnostics");
+            Integer line = arguments.containsKey("line") ? ((Number) arguments.get("line")).intValue() : null;
+            Integer column = arguments.containsKey("column") ? ((Number) arguments.get("column")).intValue() : null;
+
+            // Create options
+            com.mcp.codeanalysis.tools.LspAnalyzer.LspOptions options =
+                new com.mcp.codeanalysis.tools.LspAnalyzer.LspOptions();
+            options.file = file;
+            options.operation = operation;
+            options.line = line;
+            options.column = column;
+
+            // Perform analysis
+            com.mcp.codeanalysis.tools.LspAnalyzer.LspAnalysisResult result = analyzer.analyze(path, options);
+
+            // Format result as markdown
+            return analyzer.formatResult(result);
+
+        } catch (Exception e) {
+            logger.error("Error calling LSP Analyzer", e);
+            return "{\n" +
+                   "  \"tool\": \"lsp\",\n" +
+                   "  \"status\": \"error\",\n" +
+                   "  \"message\": \"" + e.getMessage() + "\",\n" +
+                   "  \"arguments\": " + arguments + "\n" +
+                   "}";
+        }
     }
 
     /**

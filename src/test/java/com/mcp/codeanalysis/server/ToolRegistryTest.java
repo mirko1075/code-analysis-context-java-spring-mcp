@@ -26,7 +26,7 @@ class ToolRegistryTest {
         List<Map<String, Object>> tools = registry.getToolsMetadata();
 
         assertNotNull(tools);
-        assertEquals(6, tools.size());
+        assertEquals(7, tools.size());
 
         // Verify all tool names are present
         List<String> toolNames = tools.stream()
@@ -39,6 +39,7 @@ class ToolRegistryTest {
         assertTrue(toolNames.contains("coverage"));
         assertTrue(toolNames.contains("conventions"));
         assertTrue(toolNames.contains("context"));
+        assertTrue(toolNames.contains("lsp"));
     }
 
     @Test

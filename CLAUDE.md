@@ -450,6 +450,123 @@ Generate AI-optimized context packs.
   - Traditional Spring: applicationContext.xml, servlet-context.xml, web.xml
   - Property files and resource bundles
 
+### 7. `lsp` - Language Server Protocol Analyzer
+
+Provides IDE-like features using Eclipse JDT Language Server Protocol implementation.
+
+```json
+{
+  "path": "/path/to/project",
+  "file": "src/main/java/com/example/UserService.java",
+  "operation": "diagnostics",
+  "line": 42,
+  "column": 15
+}
+```
+
+**Parameters:**
+- `path`: Project root directory (required)
+- `file`: Target Java file path - relative or absolute (required)
+- `operation`: LSP operation to perform (required)
+  - `diagnostics` - Get compilation errors and warnings for a file
+  - `hover` - Get type information at cursor position (requires line/column)
+  - `definition` - Find definition of symbol at cursor (requires line/column)
+  - `references` - Find all references to symbol (requires line/column)
+  - `completions` - Get code completion suggestions (requires line/column)
+  - `symbols` - Get document outline (classes, methods, fields)
+  - `all-diagnostics` - Get diagnostics for all Java files in project
+- `line`: Line number (required for hover, definition, references, completions)
+- `column`: Column number (required for hover, definition, references, completions)
+
+**Features:**
+
+**Diagnostics:**
+- Compilation errors and warnings
+- Syntax errors
+- Type checking errors
+- Project-wide diagnostics scanning
+
+**Code Intelligence:**
+- Hover information (type, kind, documentation)
+- Go to definition
+- Find all references
+- Code completion suggestions
+- Document symbols (outline view)
+
+**Use Cases:**
+- Pre-commit validation (find all errors before commit)
+- Code navigation and exploration
+- Type information lookup
+- Symbol refactoring planning
+- Documentation generation from symbols
+
+**Example Operations:**
+
+```bash
+# Get all compilation errors in a file
+{
+  "path": "/project",
+  "file": "src/main/java/UserController.java",
+  "operation": "diagnostics"
+}
+
+# Get type info at cursor position
+{
+  "path": "/project",
+  "file": "src/main/java/UserService.java",
+  "operation": "hover",
+  "line": 25,
+  "column": 10
+}
+
+# Find where a variable/method is defined
+{
+  "path": "/project",
+  "file": "src/main/java/UserService.java",
+  "operation": "definition",
+  "line": 30,
+  "column": 15
+}
+
+# Find all usages of a symbol
+{
+  "path": "/project",
+  "file": "src/main/java/User.java",
+  "operation": "references",
+  "line": 10,
+  "column": 20
+}
+
+# Get code completions at cursor
+{
+  "path": "/project",
+  "file": "src/main/java/UserService.java",
+  "operation": "completions",
+  "line": 40,
+  "column": 8
+}
+
+# Get document structure (outline)
+{
+  "path": "/project",
+  "file": "src/main/java/UserController.java",
+  "operation": "symbols"
+}
+
+# Scan all files for errors
+{
+  "path": "/project",
+  "file": "any-file.java",
+  "operation": "all-diagnostics"
+}
+```
+
+**Integration with Eclipse JDT:**
+- Uses Eclipse JDT Core for accurate Java parsing
+- Supports Java 17 language features
+- Resolves types and bindings
+- Provides IDE-quality analysis
+
 ## 📝 Configuration
 
 Create a `.code-analysis.json` file in your project root:

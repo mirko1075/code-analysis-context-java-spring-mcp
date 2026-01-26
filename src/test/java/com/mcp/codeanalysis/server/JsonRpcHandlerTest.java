@@ -108,8 +108,8 @@ class JsonRpcHandlerTest {
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> tools = (List<Map<String, Object>>) result.get("tools");
 
-        // Should have 6 tools
-        assertEquals(6, tools.size());
+        // Should have 7 tools
+        assertEquals(7, tools.size());
 
         // Verify tool names
         List<String> toolNames = tools.stream()
@@ -122,6 +122,7 @@ class JsonRpcHandlerTest {
         assertTrue(toolNames.contains("coverage"));
         assertTrue(toolNames.contains("conventions"));
         assertTrue(toolNames.contains("context"));
+        assertTrue(toolNames.contains("lsp"));
     }
 
     @Test
