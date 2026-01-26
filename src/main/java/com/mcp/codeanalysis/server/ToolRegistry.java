@@ -550,12 +550,127 @@ public class ToolRegistry {
     }
 
     private String callCoverageAnalyzer(Map<String, Object> arguments) {
-        return "{\n" +
-               "  \"tool\": \"coverage\",\n" +
-               "  \"status\": \"partial\",\n" +
-               "  \"message\": \"Coverage analysis requires JaCoCo report parsing. Implementation pending.\",\n" +
-               "  \"arguments\": " + arguments + "\n" +
-               "}";
+        try {
+            com.mcp.codeanalysis.tools.CoverageAnalyzer analyzer =
+                new com.mcp.codeanalysis.tools.CoverageAnalyzer();
+
+            // Parse arguments
+            String path = (String) arguments.get("path");
+
+            // Create options
+            com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageOptions options =
+                new com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageOptions();
+
+            if (arguments.containsKey("report")) {
+                options.reportPath = (String) arguments.get("report");
+            }
+            if (arguments.containsKey("fw")) {
+                options.framework = (String) arguments.get("fw");
+            }
+            if (arguments.containsKey("threshold")) {
+                options.threshold = (Map<String, Integer>) arguments.get("threshold");
+            }
+            if (arguments.containsKey("priority")) {
+                options.priority = (String) arguments.get("priority");
+            }
+            if (arguments.containsKey("tests")) {
+                options.generateTests = (Boolean) arguments.get("tests");
+            }
+            if (arguments.containsKey("cx")) {
+                options.analyzeComplexity = (Boolean) arguments.get("cx");
+            }
+
+            // Perform analysis
+            com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageAnalysisResult result =
+                analyzer.analyze(path, options);
+
+            // Format result as markdown
+            return formatCoverageResult(result, options);
+
+        } catch (Exception e) {
+            logger.error("Error calling Coverage Analyzer", e);
+            return "{\n" +
+                   "  \"tool\": \"coverage\",\n" +
+                   "  \"status\": \"error\",\n" +
+                   "  \"message\": \"" + e.getMessage() + "\",\n" +
+                   "  \"arguments\": " + arguments + "\n" +
+                   "}";
+        }
+    }
+
+    private String formatCoverageResult(com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageAnalysisResult result,
+                                       com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageOptions options) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Test Coverage Analysis\n\n");
+
+        // Summary
+        var summary = result.getSummary();
+        sb.append("## Summary\n");
+        sb.append("- **Total Coverage Gaps**: ").append(summary.get("totalGaps")).append("\n");
+        sb.append("- **Critical Priority**: ").append(summary.get("critical")).append("\n");
+        sb.append("- **High Priority**: ").append(summary.get("high")).append("\n");
+        sb.append("- **Medium Priority**: ").append(summary.get("medium")).append("\n");
+        sb.append("- **Low Priority**: ").append(summary.get("low")).append("\n\n");
+
+        // Coverage gaps by priority
+        var gaps = result.getCoverageGaps();
+        if (!gaps.isEmpty()) {
+            sb.append("## Coverage Gaps\n\n");
+
+            // Group by priority
+            Map<String, List<com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageGap>> gapsByPriority = new java.util.LinkedHashMap<>();
+            gapsByPriority.put("CRITICAL", new ArrayList<>());
+            gapsByPriority.put("HIGH", new ArrayList<>());
+            gapsByPriority.put("MEDIUM", new ArrayList<>());
+            gapsByPriority.put("LOW", new ArrayList<>());
+
+            for (var gap : gaps) {
+                gapsByPriority.get(gap.getPriority()).add(gap);
+            }
+
+            // Display each priority group
+            for (var entry : gapsByPriority.entrySet()) {
+                String priority = entry.getKey();
+                List<com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageGap> priorityGaps = entry.getValue();
+
+                if (!priorityGaps.isEmpty()) {
+                    sb.append("### ").append(priority).append(" Priority\n\n");
+                    sb.append("| Class | Method | Missed Lines | Coverage | Complexity |\n");
+                    sb.append("|-------|--------|--------------|----------|------------|\n");
+
+                    for (var gap : priorityGaps) {
+                        String simpleClassName = gap.getClassName().substring(
+                            gap.getClassName().lastIndexOf('.') + 1);
+                        sb.append("| ").append(simpleClassName).append(" | ")
+                          .append(gap.getMethodName()).append(" | ")
+                          .append(gap.getMissedLines()).append(" | ")
+                          .append(String.format("%.1f%%", gap.getCoveragePercentage())).append(" | ")
+                          .append(gap.getComplexity()).append(" |\n");
+                    }
+                    sb.append("\n");
+                }
+            }
+        }
+
+        // Test scaffolds
+        if (options.generateTests && !gaps.isEmpty()) {
+            sb.append("## Generated Test Scaffolds\n\n");
+            int scaffoldCount = 0;
+            for (var gap : gaps) {
+                if (gap.getTestScaffold() != null && scaffoldCount < 3) {
+                    sb.append("### ").append(gap.getClassName()).append(".").append(gap.getMethodName()).append("\n\n");
+                    sb.append("```java\n");
+                    sb.append(gap.getTestScaffold());
+                    sb.append("\n```\n\n");
+                    scaffoldCount++;
+                }
+            }
+            if (gaps.size() > 3) {
+                sb.append("*Showing first 3 test scaffolds. Total gaps: ").append(gaps.size()).append("*\n");
+            }
+        }
+
+        return sb.toString();
     }
 
     private String callConventionValidator(Map<String, Object> arguments) {
