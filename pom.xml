@@ -28,6 +28,8 @@
         <logback.version>1.4.14</logback.version>
         <jacoco.version>0.8.11</jacoco.version>
         <maven.model.version>3.9.6</maven.model.version>
+        <lsp4j.version>0.21.1</lsp4j.version>
+        <jdt.core.version>3.37.0</jdt.core.version>
     </properties>
 
     <dependencies>
@@ -116,6 +118,25 @@
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.report</artifactId>
             <version>${jacoco.version}</version>
+        </dependency>
+
+        <!-- LSP4J - Language Server Protocol for Java -->
+        <dependency>
+            <groupId>org.eclipse.lsp4j</groupId>
+            <artifactId>org.eclipse.lsp4j</artifactId>
+            <version>${lsp4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.lsp4j</groupId>
+            <artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
+            <version>${lsp4j.version}</version>
+        </dependency>
+
+        <!-- Eclipse JDT Core - Java Development Tools -->
+        <dependency>
+            <groupId>org.eclipse.jdt</groupId>
+            <artifactId>org.eclipse.jdt.core</artifactId>
+            <version>${jdt.core.version}</version>
         </dependency>
 
         <!-- Testing -->
