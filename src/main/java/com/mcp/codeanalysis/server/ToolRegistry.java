@@ -245,61 +245,448 @@ public class ToolRegistry {
     }
 
     private String callArchitectureAnalyzer(Map<String, Object> arguments) {
-        // TODO: Implement full architecture analyzer
-        return "{\n" +
-               "  \"tool\": \"arch\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Architecture Analyzer tool is not yet implemented\",\n" +
-               "  \"arguments\": " + arguments + "\n" +
-               "}";
+        try {
+            com.mcp.codeanalysis.tools.ArchitectureAnalyzer analyzer =
+                new com.mcp.codeanalysis.tools.ArchitectureAnalyzer();
+
+            // Parse arguments
+            String path = (String) arguments.get("path");
+
+            // Create options
+            com.mcp.codeanalysis.tools.ArchitectureAnalyzer.AnalysisOptions options =
+                new com.mcp.codeanalysis.tools.ArchitectureAnalyzer.AnalysisOptions();
+            options.generateDiagrams = (Boolean) arguments.getOrDefault("diagrams", true);
+            options.includeMetrics = (Boolean) arguments.getOrDefault("metrics", true);
+            if (arguments.containsKey("minComplexity")) {
+                options.minComplexity = ((Number) arguments.get("minComplexity")).intValue();
+            }
+            if (arguments.containsKey("maxFiles")) {
+                options.maxFiles = ((Number) arguments.get("maxFiles")).intValue();
+            }
+
+            // Perform analysis
+            com.mcp.codeanalysis.tools.ArchitectureAnalyzer.AnalysisResult result =
+                analyzer.analyze(path, options);
+
+            // Format result as markdown
+            return formatArchitectureResult(result);
+
+        } catch (Exception e) {
+            logger.error("Error calling Architecture Analyzer", e);
+            return "{\n" +
+                   "  \"tool\": \"arch\",\n" +
+                   "  \"status\": \"error\",\n" +
+                   "  \"message\": \"" + e.getMessage() + "\",\n" +
+                   "  \"arguments\": " + arguments + "\n" +
+                   "}";
+        }
+    }
+
+    private String formatArchitectureResult(com.mcp.codeanalysis.tools.ArchitectureAnalyzer.AnalysisResult result) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Architecture Analysis\n\n");
+
+        // Project info
+        sb.append("## Project Overview\n");
+        sb.append("- **Total Files**: ").append(result.getTotalFiles()).append("\n\n");
+
+        // Metrics
+        if (result.getMetrics() != null) {
+            var metrics = result.getMetrics();
+            sb.append("## Code Metrics\n");
+            sb.append("- **Total Classes**: ").append(metrics.getTotalClasses()).append("\n");
+            sb.append("- **Total Methods**: ").append(metrics.getTotalMethods()).append("\n");
+            sb.append("- **Total Lines**: ").append(metrics.getTotalLines()).append("\n");
+            sb.append("- **Code Lines**: ").append(metrics.getCodeLines()).append("\n");
+            sb.append("- **Average Complexity**: ").append(String.format("%.2f", metrics.getAverageComplexity())).append("\n");
+            sb.append("- **Max Complexity**: ").append(metrics.getMaxComplexity()).append("\n\n");
+        }
+
+        // Framework info
+        if (result.getFrameworkInfo() != null) {
+            var fw = result.getFrameworkInfo();
+            sb.append("## Framework Detection\n");
+            sb.append("- **Spring Boot**: ").append(fw.isSpringBoot() ? "✅" : "❌").append("\n");
+            sb.append("- **Traditional Spring**: ").append(fw.isTraditionalSpring() ? "✅" : "❌").append("\n");
+            sb.append("- **Spring MVC**: ").append(fw.isSpringMvc() ? "✅" : "❌").append("\n");
+            sb.append("- **Spring Data/JPA**: ").append(fw.isSpringData() ? "✅" : "❌").append("\n");
+            sb.append("- **Spring Security**: ").append(fw.isSpringSecurity() ? "✅" : "❌").append("\n");
+            sb.append("- **Spring AOP**: ").append(fw.isSpringAop() ? "✅" : "❌").append("\n\n");
+        }
+
+        // Diagrams
+        if (result.getArchitectureDiagram() != null) {
+            sb.append("## Architecture Diagram\n\n");
+            sb.append("```mermaid\n");
+            sb.append(result.getArchitectureDiagram());
+            sb.append("\n```\n\n");
+        }
+
+        if (result.getComplexityHeatmap() != null) {
+            sb.append("## Complexity Heatmap\n\n");
+            sb.append("```mermaid\n");
+            sb.append(result.getComplexityHeatmap());
+            sb.append("\n```\n");
+        }
+
+        return sb.toString();
     }
 
     private String callDependencyMapper(Map<String, Object> arguments) {
-        // TODO: Implement full dependency mapper
-        return "{\n" +
-               "  \"tool\": \"deps\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Dependency Mapper tool is not yet implemented\",\n" +
-               "  \"arguments\": " + arguments + "\n" +
-               "}";
+        try {
+            com.mcp.codeanalysis.tools.DependencyMapper mapper =
+                new com.mcp.codeanalysis.tools.DependencyMapper();
+
+            // Parse arguments
+            String path = (String) arguments.get("path");
+
+            // Create options
+            com.mcp.codeanalysis.tools.DependencyMapper.DependencyOptions options =
+                new com.mcp.codeanalysis.tools.DependencyMapper.DependencyOptions();
+            options.detectCircular = (Boolean) arguments.getOrDefault("circular", true);
+            options.calculateMetrics = (Boolean) arguments.getOrDefault("metrics", true);
+            options.generateDiagrams = (Boolean) arguments.getOrDefault("diagram", true);
+
+            if (arguments.containsKey("focus")) {
+                options.focusPackage = (String) arguments.get("focus");
+            }
+            if (arguments.containsKey("depth")) {
+                options.maxDepth = ((Number) arguments.get("depth")).intValue();
+            }
+
+            // Perform analysis
+            com.mcp.codeanalysis.tools.DependencyMapper.DependencyAnalysisResult result =
+                mapper.analyze(path, options);
+
+            // Format result as markdown
+            return formatDependencyResult(result);
+
+        } catch (Exception e) {
+            logger.error("Error calling Dependency Mapper", e);
+            return "{\n" +
+                   "  \"tool\": \"deps\",\n" +
+                   "  \"status\": \"error\",\n" +
+                   "  \"message\": \"" + e.getMessage() + "\",\n" +
+                   "  \"arguments\": " + arguments + "\n" +
+                   "}";
+        }
+    }
+
+    private String formatDependencyResult(com.mcp.codeanalysis.tools.DependencyMapper.DependencyAnalysisResult result) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Dependency Analysis\n\n");
+
+        // Summary
+        var summary = result.getSummary();
+        sb.append("## Summary\n");
+        if (summary.containsKey("totalPackages")) {
+            sb.append("- **Total Packages**: ").append(summary.get("totalPackages")).append("\n");
+            sb.append("- **Package Dependencies**: ").append(summary.get("packageDependencies")).append("\n");
+            sb.append("- **Package Circular Dependencies**: ").append(summary.get("packageCircularDependencies")).append("\n");
+        }
+        if (summary.containsKey("totalBeans")) {
+            sb.append("- **Total Beans**: ").append(summary.get("totalBeans")).append("\n");
+            sb.append("- **Bean Dependencies**: ").append(summary.get("beanDependencies")).append("\n");
+            sb.append("- **Bean Circular Dependencies**: ").append(summary.get("beanCircularDependencies")).append("\n");
+        }
+        sb.append("\n");
+
+        // Package circular dependencies
+        var packageCycles = result.getPackageCircularDependencies();
+        if (!packageCycles.isEmpty()) {
+            sb.append("## Package Circular Dependencies\n\n");
+            sb.append("⚠️ Found ").append(packageCycles.size()).append(" circular dependency cycle(s):\n\n");
+            for (int i = 0; i < packageCycles.size(); i++) {
+                List<String> cycle = packageCycles.get(i);
+                sb.append("### Cycle ").append(i + 1).append("\n");
+                sb.append("```\n");
+                sb.append(String.join(" → ", cycle));
+                sb.append(" → ").append(cycle.get(0));
+                sb.append("\n```\n\n");
+            }
+        }
+
+        // Bean circular dependencies
+        var beanCycles = result.getBeanCircularDependencies();
+        if (!beanCycles.isEmpty()) {
+            sb.append("## Bean Circular Dependencies\n\n");
+            sb.append("⚠️ Found ").append(beanCycles.size()).append(" bean circular dependency cycle(s):\n\n");
+            for (int i = 0; i < beanCycles.size(); i++) {
+                List<String> cycle = beanCycles.get(i);
+                sb.append("### Bean Cycle ").append(i + 1).append("\n");
+                sb.append("```\n");
+                sb.append(String.join(" → ", cycle));
+                sb.append(" → ").append(cycle.get(0));
+                sb.append("\n```\n\n");
+            }
+        }
+
+        // Coupling metrics
+        var metrics = result.getPackageCouplingMetrics();
+        if (metrics != null && !metrics.isEmpty()) {
+            sb.append("## Package Coupling Metrics\n\n");
+            sb.append("| Package | Afferent | Efferent | Instability |\n");
+            sb.append("|---------|----------|----------|-------------|\n");
+            metrics.forEach((pkg, metric) -> {
+                sb.append("| ").append(pkg).append(" | ")
+                  .append(metric.getAfferentCoupling()).append(" | ")
+                  .append(metric.getEfferentCoupling()).append(" | ")
+                  .append(String.format("%.2f", metric.getInstability())).append(" |\n");
+            });
+            sb.append("\n");
+        }
+
+        // Package dependency diagram
+        if (result.getPackageDependencyDiagram() != null) {
+            sb.append("## Package Dependency Diagram\n\n");
+            sb.append("```mermaid\n");
+            sb.append(result.getPackageDependencyDiagram());
+            sb.append("\n```\n\n");
+        }
+
+        // Bean dependency diagram
+        if (result.getBeanDependencyDiagram() != null) {
+            sb.append("## Bean Dependency Diagram\n\n");
+            sb.append("```mermaid\n");
+            sb.append(result.getBeanDependencyDiagram());
+            sb.append("\n```\n\n");
+        }
+
+        // Circular dependency diagram
+        if (result.getCircularDependencyDiagram() != null) {
+            sb.append("## Circular Dependency Diagram\n\n");
+            sb.append("```mermaid\n");
+            sb.append(result.getCircularDependencyDiagram());
+            sb.append("\n```\n");
+        }
+
+        return sb.toString();
     }
 
     private String callPatternDetector(Map<String, Object> arguments) {
-        // TODO: Implement full pattern detector
-        return "{\n" +
-               "  \"tool\": \"patterns\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Pattern Detector tool is not yet implemented\",\n" +
-               "  \"arguments\": " + arguments + "\n" +
-               "}";
+        try {
+            com.mcp.codeanalysis.tools.PatternDetector detector =
+                new com.mcp.codeanalysis.tools.PatternDetector();
+
+            // Parse arguments
+            String path = (String) arguments.get("path");
+
+            // Create options
+            com.mcp.codeanalysis.tools.PatternDetector.PatternOptions options =
+                new com.mcp.codeanalysis.tools.PatternDetector.PatternOptions();
+
+            if (arguments.containsKey("types")) {
+                options.patterns = (List<String>) arguments.get("types");
+            }
+            if (arguments.containsKey("best")) {
+                options.generateRecommendations = (Boolean) arguments.get("best");
+            }
+
+            // Perform analysis
+            com.mcp.codeanalysis.tools.PatternDetector.PatternDetectionResult result =
+                detector.analyze(path, options);
+
+            // Format result as markdown
+            return formatPatternResult(result);
+
+        } catch (Exception e) {
+            logger.error("Error calling Pattern Detector", e);
+            return "{\n" +
+                   "  \"tool\": \"patterns\",\n" +
+                   "  \"status\": \"error\",\n" +
+                   "  \"message\": \"" + e.getMessage() + "\",\n" +
+                   "  \"arguments\": " + arguments + "\n" +
+                   "}";
+        }
+    }
+
+    private String formatPatternResult(com.mcp.codeanalysis.tools.PatternDetector.PatternDetectionResult result) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Pattern Detection Results\n\n");
+
+        // Summary
+        var summary = result.getSummary();
+        sb.append("## Summary\n");
+        sb.append("- **Total Patterns**: ").append(summary.get("totalPatterns")).append("\n");
+        sb.append("- **Total Antipatterns**: ").append(summary.get("totalAntipatterns")).append("\n");
+        sb.append("- **Total Recommendations**: ").append(summary.get("totalRecommendations")).append("\n\n");
+
+        // Patterns
+        var patterns = result.getPatterns();
+        if (!patterns.isEmpty()) {
+            sb.append("## Detected Patterns\n\n");
+            for (var entry : patterns.entrySet()) {
+                sb.append("### ").append(entry.getKey()).append("\n");
+                for (String pattern : entry.getValue()) {
+                    sb.append("- ").append(pattern).append("\n");
+                }
+                sb.append("\n");
+            }
+        }
+
+        // Antipatterns
+        var antipatterns = result.getAntipatterns();
+        if (!antipatterns.isEmpty()) {
+            sb.append("## Detected Antipatterns\n\n");
+            for (var entry : antipatterns.entrySet()) {
+                sb.append("### ").append(entry.getKey()).append("\n");
+                for (String antipattern : entry.getValue()) {
+                    sb.append("- ").append(antipattern).append("\n");
+                }
+                sb.append("\n");
+            }
+        }
+
+        // Recommendations
+        var recommendations = result.getRecommendations();
+        if (!recommendations.isEmpty()) {
+            sb.append("## Recommendations\n\n");
+            for (String recommendation : recommendations) {
+                sb.append("- ").append(recommendation).append("\n");
+            }
+        }
+
+        return sb.toString();
     }
 
     private String callCoverageAnalyzer(Map<String, Object> arguments) {
-        // TODO: Implement full coverage analyzer
-        return "{\n" +
-               "  \"tool\": \"coverage\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Coverage Analyzer tool is not yet implemented\",\n" +
-               "  \"arguments\": " + arguments + "\n" +
-               "}";
+        try {
+            com.mcp.codeanalysis.tools.CoverageAnalyzer analyzer =
+                new com.mcp.codeanalysis.tools.CoverageAnalyzer();
+
+            // Parse arguments
+            String path = (String) arguments.get("path");
+
+            // Create options
+            com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageOptions options =
+                new com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageOptions();
+
+            if (arguments.containsKey("report")) {
+                options.reportPath = (String) arguments.get("report");
+            }
+            if (arguments.containsKey("fw")) {
+                options.framework = (String) arguments.get("fw");
+            }
+            if (arguments.containsKey("threshold")) {
+                options.threshold = (Map<String, Integer>) arguments.get("threshold");
+            }
+            if (arguments.containsKey("priority")) {
+                options.priority = (String) arguments.get("priority");
+            }
+            if (arguments.containsKey("tests")) {
+                options.generateTests = (Boolean) arguments.get("tests");
+            }
+            if (arguments.containsKey("cx")) {
+                options.analyzeComplexity = (Boolean) arguments.get("cx");
+            }
+
+            // Perform analysis
+            com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageAnalysisResult result =
+                analyzer.analyze(path, options);
+
+            // Format result as markdown
+            return formatCoverageResult(result, options);
+
+        } catch (Exception e) {
+            logger.error("Error calling Coverage Analyzer", e);
+            return "{\n" +
+                   "  \"tool\": \"coverage\",\n" +
+                   "  \"status\": \"error\",\n" +
+                   "  \"message\": \"" + e.getMessage() + "\",\n" +
+                   "  \"arguments\": " + arguments + "\n" +
+                   "}";
+        }
+    }
+
+    private String formatCoverageResult(com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageAnalysisResult result,
+                                       com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageOptions options) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Test Coverage Analysis\n\n");
+
+        // Summary
+        var summary = result.getSummary();
+        sb.append("## Summary\n");
+        sb.append("- **Total Coverage Gaps**: ").append(summary.get("totalGaps")).append("\n");
+        sb.append("- **Critical Priority**: ").append(summary.get("critical")).append("\n");
+        sb.append("- **High Priority**: ").append(summary.get("high")).append("\n");
+        sb.append("- **Medium Priority**: ").append(summary.get("medium")).append("\n");
+        sb.append("- **Low Priority**: ").append(summary.get("low")).append("\n\n");
+
+        // Coverage gaps by priority
+        var gaps = result.getCoverageGaps();
+        if (!gaps.isEmpty()) {
+            sb.append("## Coverage Gaps\n\n");
+
+            // Group by priority
+            Map<String, List<com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageGap>> gapsByPriority = new java.util.LinkedHashMap<>();
+            gapsByPriority.put("CRITICAL", new ArrayList<>());
+            gapsByPriority.put("HIGH", new ArrayList<>());
+            gapsByPriority.put("MEDIUM", new ArrayList<>());
+            gapsByPriority.put("LOW", new ArrayList<>());
+
+            for (var gap : gaps) {
+                gapsByPriority.get(gap.getPriority()).add(gap);
+            }
+
+            // Display each priority group
+            for (var entry : gapsByPriority.entrySet()) {
+                String priority = entry.getKey();
+                List<com.mcp.codeanalysis.tools.CoverageAnalyzer.CoverageGap> priorityGaps = entry.getValue();
+
+                if (!priorityGaps.isEmpty()) {
+                    sb.append("### ").append(priority).append(" Priority\n\n");
+                    sb.append("| Class | Method | Missed Lines | Coverage | Complexity |\n");
+                    sb.append("|-------|--------|--------------|----------|------------|\n");
+
+                    for (var gap : priorityGaps) {
+                        String simpleClassName = gap.getClassName().substring(
+                            gap.getClassName().lastIndexOf('.') + 1);
+                        sb.append("| ").append(simpleClassName).append(" | ")
+                          .append(gap.getMethodName()).append(" | ")
+                          .append(gap.getMissedLines()).append(" | ")
+                          .append(String.format("%.1f%%", gap.getCoveragePercentage())).append(" | ")
+                          .append(gap.getComplexity()).append(" |\n");
+                    }
+                    sb.append("\n");
+                }
+            }
+        }
+
+        // Test scaffolds
+        if (options.generateTests && !gaps.isEmpty()) {
+            sb.append("## Generated Test Scaffolds\n\n");
+            int scaffoldCount = 0;
+            for (var gap : gaps) {
+                if (gap.getTestScaffold() != null && scaffoldCount < 3) {
+                    sb.append("### ").append(gap.getClassName()).append(".").append(gap.getMethodName()).append("\n\n");
+                    sb.append("```java\n");
+                    sb.append(gap.getTestScaffold());
+                    sb.append("\n```\n\n");
+                    scaffoldCount++;
+                }
+            }
+            if (gaps.size() > 3) {
+                sb.append("*Showing first 3 test scaffolds. Total gaps: ").append(gaps.size()).append("*\n");
+            }
+        }
+
+        return sb.toString();
     }
 
     private String callConventionValidator(Map<String, Object> arguments) {
-        // TODO: Implement full convention validator
         return "{\n" +
                "  \"tool\": \"conventions\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Convention Validator tool is not yet implemented\",\n" +
+               "  \"status\": \"partial\",\n" +
+               "  \"message\": \"Convention validation requires AST analysis. Implementation pending.\",\n" +
                "  \"arguments\": " + arguments + "\n" +
                "}";
     }
 
     private String callContextPackGenerator(Map<String, Object> arguments) {
-        // TODO: Implement full context pack generator
         return "{\n" +
                "  \"tool\": \"context\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Context Pack Generator tool is not yet implemented\",\n" +
+               "  \"status\": \"partial\",\n" +
+               "  \"message\": \"Context pack generation requires relevance scoring. Implementation pending.\",\n" +
                "  \"arguments\": " + arguments + "\n" +
                "}";
     }
