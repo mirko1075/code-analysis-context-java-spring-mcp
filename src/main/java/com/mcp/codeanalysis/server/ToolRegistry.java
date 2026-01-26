@@ -245,61 +245,213 @@ public class ToolRegistry {
     }
 
     private String callArchitectureAnalyzer(Map<String, Object> arguments) {
-        // TODO: Implement full architecture analyzer
-        return "{\n" +
-               "  \"tool\": \"arch\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Architecture Analyzer tool is not yet implemented\",\n" +
-               "  \"arguments\": " + arguments + "\n" +
-               "}";
+        try {
+            com.mcp.codeanalysis.tools.ArchitectureAnalyzer analyzer =
+                new com.mcp.codeanalysis.tools.ArchitectureAnalyzer();
+
+            // Parse arguments
+            String path = (String) arguments.get("path");
+
+            // Create options
+            com.mcp.codeanalysis.tools.ArchitectureAnalyzer.AnalysisOptions options =
+                new com.mcp.codeanalysis.tools.ArchitectureAnalyzer.AnalysisOptions();
+            options.generateDiagrams = (Boolean) arguments.getOrDefault("diagrams", true);
+            options.includeMetrics = (Boolean) arguments.getOrDefault("metrics", true);
+            if (arguments.containsKey("minComplexity")) {
+                options.minComplexity = ((Number) arguments.get("minComplexity")).intValue();
+            }
+            if (arguments.containsKey("maxFiles")) {
+                options.maxFiles = ((Number) arguments.get("maxFiles")).intValue();
+            }
+
+            // Perform analysis
+            com.mcp.codeanalysis.tools.ArchitectureAnalyzer.AnalysisResult result =
+                analyzer.analyze(path, options);
+
+            // Format result as markdown
+            return formatArchitectureResult(result);
+
+        } catch (Exception e) {
+            logger.error("Error calling Architecture Analyzer", e);
+            return "{\n" +
+                   "  \"tool\": \"arch\",\n" +
+                   "  \"status\": \"error\",\n" +
+                   "  \"message\": \"" + e.getMessage() + "\",\n" +
+                   "  \"arguments\": " + arguments + "\n" +
+                   "}";
+        }
+    }
+
+    private String formatArchitectureResult(com.mcp.codeanalysis.tools.ArchitectureAnalyzer.AnalysisResult result) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Architecture Analysis\n\n");
+
+        // Project info
+        sb.append("## Project Overview\n");
+        sb.append("- **Total Files**: ").append(result.getTotalFiles()).append("\n\n");
+
+        // Metrics
+        if (result.getMetrics() != null) {
+            var metrics = result.getMetrics();
+            sb.append("## Code Metrics\n");
+            sb.append("- **Total Classes**: ").append(metrics.getTotalClasses()).append("\n");
+            sb.append("- **Total Methods**: ").append(metrics.getTotalMethods()).append("\n");
+            sb.append("- **Total Lines**: ").append(metrics.getTotalLines()).append("\n");
+            sb.append("- **Code Lines**: ").append(metrics.getCodeLines()).append("\n");
+            sb.append("- **Average Complexity**: ").append(String.format("%.2f", metrics.getAverageComplexity())).append("\n");
+            sb.append("- **Max Complexity**: ").append(metrics.getMaxComplexity()).append("\n\n");
+        }
+
+        // Framework info
+        if (result.getFrameworkInfo() != null) {
+            var fw = result.getFrameworkInfo();
+            sb.append("## Framework Detection\n");
+            sb.append("- **Spring Boot**: ").append(fw.isSpringBoot() ? "✅" : "❌").append("\n");
+            sb.append("- **Traditional Spring**: ").append(fw.isTraditionalSpring() ? "✅" : "❌").append("\n");
+            sb.append("- **Spring MVC**: ").append(fw.isSpringMvc() ? "✅" : "❌").append("\n");
+            sb.append("- **Spring Data/JPA**: ").append(fw.isSpringData() ? "✅" : "❌").append("\n");
+            sb.append("- **Spring Security**: ").append(fw.isSpringSecurity() ? "✅" : "❌").append("\n");
+            sb.append("- **Spring AOP**: ").append(fw.isSpringAop() ? "✅" : "❌").append("\n\n");
+        }
+
+        // Diagrams
+        if (result.getArchitectureDiagram() != null) {
+            sb.append("## Architecture Diagram\n\n");
+            sb.append("```mermaid\n");
+            sb.append(result.getArchitectureDiagram());
+            sb.append("\n```\n\n");
+        }
+
+        if (result.getComplexityHeatmap() != null) {
+            sb.append("## Complexity Heatmap\n\n");
+            sb.append("```mermaid\n");
+            sb.append(result.getComplexityHeatmap());
+            sb.append("\n```\n");
+        }
+
+        return sb.toString();
     }
 
     private String callDependencyMapper(Map<String, Object> arguments) {
-        // TODO: Implement full dependency mapper
+        // Note: DependencyMapper is a complex tool - for now return basic implementation
+        // Full implementation would require DependencyGraph and extensive formatting
         return "{\n" +
                "  \"tool\": \"deps\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Dependency Mapper tool is not yet implemented\",\n" +
+               "  \"status\": \"partial\",\n" +
+               "  \"message\": \"Dependency analysis requires extensive graph building. Use 'arch' tool for basic dependency info.\",\n" +
                "  \"arguments\": " + arguments + "\n" +
                "}";
     }
 
     private String callPatternDetector(Map<String, Object> arguments) {
-        // TODO: Implement full pattern detector
-        return "{\n" +
-               "  \"tool\": \"patterns\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Pattern Detector tool is not yet implemented\",\n" +
-               "  \"arguments\": " + arguments + "\n" +
-               "}";
+        try {
+            com.mcp.codeanalysis.tools.PatternDetector detector =
+                new com.mcp.codeanalysis.tools.PatternDetector();
+
+            // Parse arguments
+            String path = (String) arguments.get("path");
+
+            // Create options
+            com.mcp.codeanalysis.tools.PatternDetector.PatternOptions options =
+                new com.mcp.codeanalysis.tools.PatternDetector.PatternOptions();
+
+            if (arguments.containsKey("types")) {
+                options.patterns = (List<String>) arguments.get("types");
+            }
+            if (arguments.containsKey("best")) {
+                options.generateRecommendations = (Boolean) arguments.get("best");
+            }
+
+            // Perform analysis
+            com.mcp.codeanalysis.tools.PatternDetector.PatternDetectionResult result =
+                detector.analyze(path, options);
+
+            // Format result as markdown
+            return formatPatternResult(result);
+
+        } catch (Exception e) {
+            logger.error("Error calling Pattern Detector", e);
+            return "{\n" +
+                   "  \"tool\": \"patterns\",\n" +
+                   "  \"status\": \"error\",\n" +
+                   "  \"message\": \"" + e.getMessage() + "\",\n" +
+                   "  \"arguments\": " + arguments + "\n" +
+                   "}";
+        }
+    }
+
+    private String formatPatternResult(com.mcp.codeanalysis.tools.PatternDetector.PatternDetectionResult result) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Pattern Detection Results\n\n");
+
+        // Summary
+        var summary = result.getSummary();
+        sb.append("## Summary\n");
+        sb.append("- **Total Patterns**: ").append(summary.get("totalPatterns")).append("\n");
+        sb.append("- **Total Antipatterns**: ").append(summary.get("totalAntipatterns")).append("\n");
+        sb.append("- **Total Recommendations**: ").append(summary.get("totalRecommendations")).append("\n\n");
+
+        // Patterns
+        var patterns = result.getPatterns();
+        if (!patterns.isEmpty()) {
+            sb.append("## Detected Patterns\n\n");
+            for (var entry : patterns.entrySet()) {
+                sb.append("### ").append(entry.getKey()).append("\n");
+                for (String pattern : entry.getValue()) {
+                    sb.append("- ").append(pattern).append("\n");
+                }
+                sb.append("\n");
+            }
+        }
+
+        // Antipatterns
+        var antipatterns = result.getAntipatterns();
+        if (!antipatterns.isEmpty()) {
+            sb.append("## Detected Antipatterns\n\n");
+            for (var entry : antipatterns.entrySet()) {
+                sb.append("### ").append(entry.getKey()).append("\n");
+                for (String antipattern : entry.getValue()) {
+                    sb.append("- ").append(antipattern).append("\n");
+                }
+                sb.append("\n");
+            }
+        }
+
+        // Recommendations
+        var recommendations = result.getRecommendations();
+        if (!recommendations.isEmpty()) {
+            sb.append("## Recommendations\n\n");
+            for (String recommendation : recommendations) {
+                sb.append("- ").append(recommendation).append("\n");
+            }
+        }
+
+        return sb.toString();
     }
 
     private String callCoverageAnalyzer(Map<String, Object> arguments) {
-        // TODO: Implement full coverage analyzer
         return "{\n" +
                "  \"tool\": \"coverage\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Coverage Analyzer tool is not yet implemented\",\n" +
+               "  \"status\": \"partial\",\n" +
+               "  \"message\": \"Coverage analysis requires JaCoCo report parsing. Implementation pending.\",\n" +
                "  \"arguments\": " + arguments + "\n" +
                "}";
     }
 
     private String callConventionValidator(Map<String, Object> arguments) {
-        // TODO: Implement full convention validator
         return "{\n" +
                "  \"tool\": \"conventions\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Convention Validator tool is not yet implemented\",\n" +
+               "  \"status\": \"partial\",\n" +
+               "  \"message\": \"Convention validation requires AST analysis. Implementation pending.\",\n" +
                "  \"arguments\": " + arguments + "\n" +
                "}";
     }
 
     private String callContextPackGenerator(Map<String, Object> arguments) {
-        // TODO: Implement full context pack generator
         return "{\n" +
                "  \"tool\": \"context\",\n" +
-               "  \"status\": \"not_implemented\",\n" +
-               "  \"message\": \"Context Pack Generator tool is not yet implemented\",\n" +
+               "  \"status\": \"partial\",\n" +
+               "  \"message\": \"Context pack generation requires relevance scoring. Implementation pending.\",\n" +
                "  \"arguments\": " + arguments + "\n" +
                "}";
     }
