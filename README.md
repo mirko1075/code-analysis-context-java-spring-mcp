@@ -32,7 +32,28 @@ A Model Context Protocol (MCP) server in Java for analyzing Spring Framework and
 - ✅ SecurityAnalyzer - Spring Security patterns, authentication, authorization
 - ✅ AopAnalyzer - Aspect detection, pointcuts, advice types
 
-**Total: 266 tests passing** ✅
+**Total: 280 tests passing** ✅
+
+## 🚀 Quick Start & Integration
+
+### For Claude Code Users
+
+📘 **[Claude Code Setup (3 minutes)](CLAUDE_CODE_SETUP.md)** - Fastest way to get started with Claude Code
+
+### For All Users
+
+📖 **[Complete Integration Guide](INTEGRATION_GUIDE.md)** - Comprehensive guide for:
+- ✅ Claude Code integration (native MCP support)
+- ⚠️ GitHub Copilot integration (via MCP extension)
+- 🔧 VS Code MCP extension setup
+- 💡 Best practices and workflows
+- 🐛 Troubleshooting
+
+### LSP Tool Documentation
+
+- 📋 **[LSP Quick Start](LSP_QUICK_START.md)** - 5-minute guide to LSP features
+- 🎨 **[LSP Demo](LSP_DEMO.md)** - Architecture, use cases, and examples
+- 📊 **[LSP Test Results](LSP_TEST_RESULTS.md)** - Real test results and performance data
 
 ## 📋 Key Features Implemented
 
