@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "java-spring-analyzer": {
+      "command": "java",
+      "args": [
+        "-jar",
+        "./target/code-analysis-context-java-spring-mcp-1.0.0.jar"
+      ],
+      "description": "Java/Spring code analysis and context engineering",
+      "env": {
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}
