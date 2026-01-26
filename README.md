@@ -55,7 +55,6 @@ A Model Context Protocol (MCP) server in Java for analyzing Spring Framework and
 - 🎨 **[LSP Demo](LSP_DEMO.md)** - Architecture, use cases, and examples
 - 📊 **[LSP Test Results](LSP_TEST_RESULTS.md)** - Real test results and performance data
 
-
 ## 📋 Key Features Implemented
 
 ### Spring Framework Support
