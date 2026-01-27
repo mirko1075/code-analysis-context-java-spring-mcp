@@ -47,7 +47,7 @@ This MCP server is specifically designed for Java projects, supporting both trad
 
 ### Prerequisites
 
-- Java 17 or higher
+- Java 11 or higher (LTS)
 - Maven 3.8+ or Gradle 7.0+
 
 ### Install from source
@@ -563,7 +563,7 @@ Provides IDE-like features using Eclipse JDT Language Server Protocol implementa
 
 **Integration with Eclipse JDT:**
 - Uses Eclipse JDT Core for accurate Java parsing
-- Supports Java 17 language features
+- Supports Java 11+ language features (LTS)
 - Resolves types and bindings
 - Provides IDE-quality analysis
 
@@ -856,7 +856,7 @@ Running the tools on a traditional Spring project shows:
 
 **Status**: 🔄 **In Development** - Specification complete, ready for implementation
 
-**Java Version**: 17+
+**Java Version**: 11+ (LTS)
 
 **Target Frameworks**:
 - Spring Framework 5.x/6.x (Traditional)
