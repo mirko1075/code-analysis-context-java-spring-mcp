@@ -165,24 +165,62 @@ public class SpringBootAnalyzer {
      */
     private void mapStarterToFeature(String starter, SpringBootAnalysisResult result) {
         switch (starter) {
-            case "web" -> result.addFeature("Spring MVC / REST");
-            case "webflux" -> result.addFeature("Reactive Web");
-            case "data-jpa" -> result.addFeature("Spring Data JPA");
-            case "data-mongodb" -> result.addFeature("MongoDB");
-            case "data-redis" -> result.addFeature("Redis");
-            case "security" -> result.addFeature("Spring Security");
-            case "actuator" -> result.addFeature("Actuator");
-            case "test" -> result.addFeature("Testing");
-            case "validation" -> result.addFeature("Validation");
-            case "aop" -> result.addFeature("AOP");
-            case "cache" -> result.addFeature("Caching");
-            case "amqp" -> result.addFeature("RabbitMQ");
-            case "kafka" -> result.addFeature("Kafka");
-            case "mail" -> result.addFeature("Email");
-            case "thymeleaf" -> result.addFeature("Thymeleaf");
-            case "oauth2-client", "oauth2-resource-server" -> result.addFeature("OAuth2");
-            case "cloud-config" -> result.addFeature("Config Server");
-            case "cloud-netflix-eureka-client", "cloud-netflix-eureka-server" -> result.addFeature("Service Discovery");
+            case "web":
+                result.addFeature("Spring MVC / REST");
+                break;
+            case "webflux":
+                result.addFeature("Reactive Web");
+                break;
+            case "data-jpa":
+                result.addFeature("Spring Data JPA");
+                break;
+            case "data-mongodb":
+                result.addFeature("MongoDB");
+                break;
+            case "data-redis":
+                result.addFeature("Redis");
+                break;
+            case "security":
+                result.addFeature("Spring Security");
+                break;
+            case "actuator":
+                result.addFeature("Actuator");
+                break;
+            case "test":
+                result.addFeature("Testing");
+                break;
+            case "validation":
+                result.addFeature("Validation");
+                break;
+            case "aop":
+                result.addFeature("AOP");
+                break;
+            case "cache":
+                result.addFeature("Caching");
+                break;
+            case "amqp":
+                result.addFeature("RabbitMQ");
+                break;
+            case "kafka":
+                result.addFeature("Kafka");
+                break;
+            case "mail":
+                result.addFeature("Email");
+                break;
+            case "thymeleaf":
+                result.addFeature("Thymeleaf");
+                break;
+            case "oauth2-client":
+            case "oauth2-resource-server":
+                result.addFeature("OAuth2");
+                break;
+            case "cloud-config":
+                result.addFeature("Config Server");
+                break;
+            case "cloud-netflix-eureka-client":
+            case "cloud-netflix-eureka-server":
+                result.addFeature("Service Discovery");
+                break;
         }
     }
 

@@ -47,13 +47,14 @@ public class LspAnalyzer {
             }
 
             switch (options.operation.toLowerCase()) {
-                case "diagnostics" -> {
+                case "diagnostics": {
                     List<LspBridge.Diagnostic> diagnostics = lspBridge.getDiagnostics(targetFile);
                     result.setDiagnostics(diagnostics);
                     result.setSummary(String.format("Found %d diagnostic(s)", diagnostics.size()));
+                    break;
                 }
 
-                case "hover" -> {
+                case "hover": {
                     if (options.line == null || options.column == null) {
                         result.setError("Line and column required for hover operation");
                         return result;
@@ -61,9 +62,10 @@ public class LspAnalyzer {
                     LspBridge.HoverInfo hover = lspBridge.getHoverInfo(targetFile, options.line, options.column);
                     result.setHoverInfo(hover);
                     result.setSummary(hover != null ? "Hover info retrieved" : "No hover info found");
+                    break;
                 }
 
-                case "definition" -> {
+                case "definition": {
                     if (options.line == null || options.column == null) {
                         result.setError("Line and column required for definition operation");
                         return result;
@@ -71,9 +73,10 @@ public class LspAnalyzer {
                     LspBridge.DefinitionInfo definition = lspBridge.findDefinition(targetFile, options.line, options.column);
                     result.setDefinitionInfo(definition);
                     result.setSummary(definition != null ? "Definition found" : "No definition found");
+                    break;
                 }
 
-                case "references" -> {
+                case "references": {
                     if (options.line == null || options.column == null) {
                         result.setError("Line and column required for references operation");
                         return result;
@@ -81,9 +84,10 @@ public class LspAnalyzer {
                     List<LspBridge.ReferenceInfo> references = lspBridge.findReferences(targetFile, options.line, options.column);
                     result.setReferences(references);
                     result.setSummary(String.format("Found %d reference(s)", references.size()));
+                    break;
                 }
 
-                case "completions" -> {
+                case "completions": {
                     if (options.line == null || options.column == null) {
                         result.setError("Line and column required for completions operation");
                         return result;
@@ -91,15 +95,17 @@ public class LspAnalyzer {
                     List<LspBridge.CompletionItem> completions = lspBridge.getCompletions(targetFile, options.line, options.column);
                     result.setCompletions(completions);
                     result.setSummary(String.format("Found %d completion(s)", completions.size()));
+                    break;
                 }
 
-                case "symbols" -> {
+                case "symbols": {
                     List<LspBridge.SymbolInfo> symbols = lspBridge.getDocumentSymbols(targetFile);
                     result.setSymbols(symbols);
                     result.setSummary(String.format("Found %d symbol(s)", symbols.size()));
+                    break;
                 }
 
-                case "all-diagnostics" -> {
+                case "all-diagnostics": {
                     // Get diagnostics for all Java files in project
                     List<Path> javaFiles = fileScanner.scanJavaFiles();
                     Map<String, List<LspBridge.Diagnostic>> allDiagnostics = new HashMap<>();
@@ -115,9 +121,10 @@ public class LspAnalyzer {
 
                     result.setAllDiagnostics(allDiagnostics);
                     result.setSummary(String.format("Found %d issues in %d file(s)", totalIssues, allDiagnostics.size()));
+                    break;
                 }
 
-                default -> {
+                default: {
                     result.setError("Unknown operation: " + options.operation);
                     return result;
                 }

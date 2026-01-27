@@ -418,47 +418,123 @@ public class LspBridge {
 
     // Data classes for LSP responses
 
-    public static record Diagnostic(
-        int line,
-        int startOffset,
-        int endOffset,
-        String message,
-        String severity
-    ) {}
+    public static class Diagnostic {
+        private final int line;
+        private final int startOffset;
+        private final int endOffset;
+        private final String message;
+        private final String severity;
 
-    public static record HoverInfo(
-        String name,
-        String type,
-        String kind
-    ) {}
+        public Diagnostic(int line, int startOffset, int endOffset, String message, String severity) {
+            this.line = line;
+            this.startOffset = startOffset;
+            this.endOffset = endOffset;
+            this.message = message;
+            this.severity = severity;
+        }
 
-    public static record DefinitionInfo(
-        String name,
-        String type,
-        String kind,
-        String filePath,
-        int line
-    ) {}
+        public int line() { return line; }
+        public int startOffset() { return startOffset; }
+        public int endOffset() { return endOffset; }
+        public String message() { return message; }
+        public String severity() { return severity; }
+    }
 
-    public static record ReferenceInfo(
-        String filePath,
-        int line,
-        int startOffset,
-        int length,
-        String text
-    ) {}
+    public static class HoverInfo {
+        private final String name;
+        private final String type;
+        private final String kind;
 
-    public static record CompletionItem(
-        String label,
-        String kind,
-        String detail
-    ) {}
+        public HoverInfo(String name, String type, String kind) {
+            this.name = name;
+            this.type = type;
+            this.kind = kind;
+        }
 
-    public static record SymbolInfo(
-        String name,
-        String kind,
-        int line,
-        int startOffset,
-        int length
-    ) {}
+        public String name() { return name; }
+        public String type() { return type; }
+        public String kind() { return kind; }
+    }
+
+    public static class DefinitionInfo {
+        private final String name;
+        private final String type;
+        private final String kind;
+        private final String filePath;
+        private final int line;
+
+        public DefinitionInfo(String name, String type, String kind, String filePath, int line) {
+            this.name = name;
+            this.type = type;
+            this.kind = kind;
+            this.filePath = filePath;
+            this.line = line;
+        }
+
+        public String name() { return name; }
+        public String type() { return type; }
+        public String kind() { return kind; }
+        public String filePath() { return filePath; }
+        public int line() { return line; }
+    }
+
+    public static class ReferenceInfo {
+        private final String filePath;
+        private final int line;
+        private final int startOffset;
+        private final int length;
+        private final String text;
+
+        public ReferenceInfo(String filePath, int line, int startOffset, int length, String text) {
+            this.filePath = filePath;
+            this.line = line;
+            this.startOffset = startOffset;
+            this.length = length;
+            this.text = text;
+        }
+
+        public String filePath() { return filePath; }
+        public int line() { return line; }
+        public int startOffset() { return startOffset; }
+        public int length() { return length; }
+        public String text() { return text; }
+    }
+
+    public static class CompletionItem {
+        private final String label;
+        private final String kind;
+        private final String detail;
+
+        public CompletionItem(String label, String kind, String detail) {
+            this.label = label;
+            this.kind = kind;
+            this.detail = detail;
+        }
+
+        public String label() { return label; }
+        public String kind() { return kind; }
+        public String detail() { return detail; }
+    }
+
+    public static class SymbolInfo {
+        private final String name;
+        private final String kind;
+        private final int line;
+        private final int startOffset;
+        private final int length;
+
+        public SymbolInfo(String name, String kind, int line, int startOffset, int length) {
+            this.name = name;
+            this.kind = kind;
+            this.line = line;
+            this.startOffset = startOffset;
+            this.length = length;
+        }
+
+        public String name() { return name; }
+        public String kind() { return kind; }
+        public int line() { return line; }
+        public int startOffset() { return startOffset; }
+        public int length() { return length; }
+    }
 }
