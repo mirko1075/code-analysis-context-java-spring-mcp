@@ -237,11 +237,14 @@ public class ContextPackGenerator {
      */
     private String formatOutput(ContextPackResult result, String task, Path projectRoot,
                                 ContextPackOptions options) {
-        return switch (options.format) {
-            case "json" -> formatAsJson(result, task, options);
-            case "xml" -> formatAsXml(result, task, options);
-            default -> formatAsMarkdown(result, task, options);
-        };
+        switch (options.format) {
+            case "json":
+                return formatAsJson(result, task, options);
+            case "xml":
+                return formatAsXml(result, task, options);
+            default:
+                return formatAsMarkdown(result, task, options);
+        }
     }
 
     /**

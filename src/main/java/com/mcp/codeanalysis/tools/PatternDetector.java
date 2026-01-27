@@ -104,14 +104,20 @@ public class PatternDetector {
                                   FrameworkDetector.FrameworkInfo frameworkInfo) {
         if (requestedPatterns.isEmpty()) {
             // Auto-detect based on framework
-            return switch (patternType) {
-                case "spring-boot" -> frameworkInfo.isSpringBoot();
-                case "spring-mvc" -> frameworkInfo.isSpringMvc();
-                case "jpa" -> frameworkInfo.isSpringData();
-                case "security" -> frameworkInfo.isSpringSecurity();
-                case "aop" -> frameworkInfo.isSpringAop();
-                default -> false;
-            };
+            switch (patternType) {
+                case "spring-boot":
+                    return frameworkInfo.isSpringBoot();
+                case "spring-mvc":
+                    return frameworkInfo.isSpringMvc();
+                case "jpa":
+                    return frameworkInfo.isSpringData();
+                case "security":
+                    return frameworkInfo.isSpringSecurity();
+                case "aop":
+                    return frameworkInfo.isSpringAop();
+                default:
+                    return false;
+            }
         } else {
             return requestedPatterns.contains(patternType);
         }

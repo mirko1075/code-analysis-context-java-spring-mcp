@@ -139,7 +139,7 @@ Tests run: 266, Failures: 0, Errors: 0, Skipped: 0
 
 ### Prerequisites
 
-- Java 17 or higher
+- Java 17 or higher (LTS)
 - Maven 3.8+
 
 ### Build
@@ -308,7 +308,7 @@ e2db8d3 feat: Implement AopAnalyzer for Spring AOP pattern detection
 
 ## 🛠️ Technology Stack
 
-- **Java 17** - Modern Java with records, text blocks, pattern matching
+- **Java 17+ (LTS)** - Long-term support Java version with modern features
 - **JavaParser 3.25.8** - Java AST parsing
 - **DOM4J 2.1.4** + **Jaxen 2.0.0** - XML parsing with XPath
 - **Jackson 2.16.1** - JSON and YAML processing
@@ -337,7 +337,7 @@ This Java/Spring Boot implementation is **heavily inspired by and based on** the
 
 The core architecture analysis logic, pattern detection algorithms, dependency mapping, and MCP tool design have been adapted from the Python version to work with Java/Spring Boot ecosystems. Key differences include:
 
-- **Language**: Python → Java 17+
+- **Language**: Python → Java 17+ (LTS)
 - **Target Projects**: Python codebases → Java/Spring Framework/Spring Boot projects
 - **Frameworks Analyzed**: Django, Flask → Spring MVC, Spring Boot, Spring Data, Spring Security, Spring AOP
 - **Configuration**: Python modules → Spring XML configs, JavaConfig, application.yml/properties

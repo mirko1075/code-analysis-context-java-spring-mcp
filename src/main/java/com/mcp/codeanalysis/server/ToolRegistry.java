@@ -232,16 +232,24 @@ public class ToolRegistry {
         logger.info("Calling tool: {} with arguments: {}", toolName, arguments);
 
         // Route to specific tool implementation
-        return switch (toolName) {
-            case "arch" -> callArchitectureAnalyzer(arguments);
-            case "deps" -> callDependencyMapper(arguments);
-            case "patterns" -> callPatternDetector(arguments);
-            case "coverage" -> callCoverageAnalyzer(arguments);
-            case "conventions" -> callConventionValidator(arguments);
-            case "context" -> callContextPackGenerator(arguments);
-            case "lsp" -> callLspAnalyzer(arguments);
-            default -> throw new IllegalArgumentException("Unknown tool: " + toolName);
-        };
+        switch (toolName) {
+            case "arch":
+                return callArchitectureAnalyzer(arguments);
+            case "deps":
+                return callDependencyMapper(arguments);
+            case "patterns":
+                return callPatternDetector(arguments);
+            case "coverage":
+                return callCoverageAnalyzer(arguments);
+            case "conventions":
+                return callConventionValidator(arguments);
+            case "context":
+                return callContextPackGenerator(arguments);
+            case "lsp":
+                return callLspAnalyzer(arguments);
+            default:
+                throw new IllegalArgumentException("Unknown tool: " + toolName);
+        }
     }
 
     private String callArchitectureAnalyzer(Map<String, Object> arguments) {

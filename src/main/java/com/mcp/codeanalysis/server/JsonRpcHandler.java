@@ -32,13 +32,23 @@ public class JsonRpcHandler {
         logger.info("Handling request: method={}, id={}", method, id);
 
         try {
-            Map<String, Object> result = switch (method) {
-                case "initialize" -> handleInitialize(params);
-                case "tools/list" -> handleToolsList();
-                case "tools/call" -> handleToolsCall(params);
-                case "ping" -> handlePing();
-                default -> throw new IllegalArgumentException("Unknown method: " + method);
-            };
+            Map<String, Object> result;
+            switch (method) {
+                case "initialize":
+                    result = handleInitialize(params);
+                    break;
+                case "tools/list":
+                    result = handleToolsList();
+                    break;
+                case "tools/call":
+                    result = handleToolsCall(params);
+                    break;
+                case "ping":
+                    result = handlePing();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown method: " + method);
+            }
 
             return createSuccessResponse(id, result);
 
