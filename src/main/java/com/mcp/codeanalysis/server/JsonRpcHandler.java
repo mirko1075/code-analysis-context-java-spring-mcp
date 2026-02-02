@@ -22,16 +22,24 @@ public class JsonRpcHandler {
     }
 
     /**
-     * Handle a JSON-RPC request and return a response.
+     * Handle a JSON-RPC request or notification and return a response (or null for notifications).
      */
     public Map<String, Object> handleRequest(Map<String, Object> request) {
         String method = (String) request.get("method");
         Object id = request.get("id");
         Map<String, Object> params = (Map<String, Object>) request.getOrDefault("params", new HashMap<>());
 
-        logger.info("Handling request: method={}, id={}", method, id);
+        boolean isNotification = (id == null);
+        logger.info("Handling {}: method={}, id={}", isNotification ? "notification" : "request", method, id);
 
         try {
+            // Handle notifications (no response expected)
+            if (isNotification) {
+                handleNotification(method, params);
+                return null; // No response for notifications
+            }
+
+            // Handle requests (response required)
             Map<String, Object> result;
             switch (method) {
                 case "initialize":
@@ -54,7 +62,33 @@ public class JsonRpcHandler {
 
         } catch (Exception e) {
             logger.error("Error handling method: {}", method, e);
-            return createErrorResponse(id, -32603, "Internal error: " + e.getMessage());
+            // Only return error response for requests, not notifications
+            return isNotification ? null : createErrorResponse(id, -32603, "Internal error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle JSON-RPC notifications (messages without id that don't require a response).
+     */
+    private void handleNotification(String method, Map<String, Object> params) {
+        switch (method) {
+            case "notifications/initialized":
+                // Client has finished initialization
+                logger.info("Client initialization complete");
+                initialized = true;
+                break;
+            case "notifications/cancelled":
+                // Client cancelled a request
+                logger.info("Client cancelled request");
+                break;
+            case "notifications/progress":
+                // Progress notification from client
+                logger.debug("Progress notification received");
+                break;
+            default:
+                logger.warn("Unknown notification method: {}", method);
+                // Don't throw exception for unknown notifications - just log and ignore
+                break;
         }
     }
 

@@ -70,13 +70,17 @@ public class McpServer {
                     // Handle request and get response
                     var response = rpcHandler.handleRequest(request);
 
-                    // Write response to stdout
-                    String responseJson = objectMapper.writeValueAsString(response);
-                    logger.debug("Sending response: {}", responseJson);
+                    // Write response to stdout (only if not null - notifications don't have responses)
+                    if (response != null) {
+                        String responseJson = objectMapper.writeValueAsString(response);
+                        logger.debug("Sending response: {}", responseJson);
 
-                    writer.write(responseJson);
-                    writer.newLine();
-                    writer.flush();
+                        writer.write(responseJson);
+                        writer.newLine();
+                        writer.flush();
+                    } else {
+                        logger.debug("No response sent (notification handled)");
+                    }
 
                 } catch (Exception e) {
                     logger.error("Error processing request: {}", line, e);

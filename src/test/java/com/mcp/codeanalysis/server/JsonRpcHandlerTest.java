@@ -210,15 +210,43 @@ class JsonRpcHandlerTest {
 
     @Test
     void testHandleNullId() {
+        // Null id means notification - no response expected
         Map<String, Object> request = new HashMap<>();
         request.put("jsonrpc", "2.0");
         request.put("id", null);
-        request.put("method", "ping");
+        request.put("method", "notifications/initialized");
 
         Map<String, Object> response = handler.handleRequest(request);
 
-        assertEquals("2.0", response.get("jsonrpc"));
-        assertNull(response.get("id"));
-        assertNotNull(response.get("result"));
+        // Notifications should return null (no response)
+        assertNull(response);
+    }
+
+    @Test
+    void testHandleNotificationInitialized() {
+        Map<String, Object> request = new HashMap<>();
+        request.put("jsonrpc", "2.0");
+        // No id field = notification
+        request.put("method", "notifications/initialized");
+        request.put("params", new HashMap<>());
+
+        Map<String, Object> response = handler.handleRequest(request);
+
+        // Notifications should return null (no response)
+        assertNull(response);
+    }
+
+    @Test
+    void testHandleUnknownNotification() {
+        Map<String, Object> request = new HashMap<>();
+        request.put("jsonrpc", "2.0");
+        // No id field = notification
+        request.put("method", "notifications/unknown");
+        request.put("params", new HashMap<>());
+
+        Map<String, Object> response = handler.handleRequest(request);
+
+        // Unknown notifications should still return null (just logged and ignored)
+        assertNull(response);
     }
 }
